@@ -1,5 +1,4 @@
 ---
-
 - name: Apply role for Access Switch
   gather_facts: no
   hosts: localhost
