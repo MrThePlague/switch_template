@@ -17,7 +17,7 @@ no service udp-small-servers
 service compress-config
 !
 !
-! Import Hostname and set to upper-case
+! Import Hostname and ensure upper-case
 hostname {{ item.hostname|upper }}
 !
 !
@@ -100,21 +100,21 @@ redundancy
 vlan internal allocation policy ascending
 !
 interface vlan {{ item.mgmt_vlan }}
-  description Management - {{ item.mgmt_subnet }}
-  ip address {{ item.mgmt_ip }} 255.255.255.0
-  no ip source-route
-  no ip proxy-arp
+ description Management - {{ item.mgmt_subnet }}
+ ip address {{ item.mgmt_ip }} 255.255.255.0
+ no ip source-route
+ no ip proxy-arp
 !
 {% for uplink in item.uplinks %}
 interface {{ uplink.uplink_port }}
-  description {{ uplink.core_switch|upper }} - {{ uplink.core_port }}
-  switchport trunk native vlan 999
-  switchport trunk allowed vlan {{ item.uplink_vlans }}
-  switchport mode trunk  
-  switchport nonegotiate  
-  spanning-tree portfast disable  
-  spanning-tree bpduguard disable
-  channel-group {{ uplink.channel_group }} active
+ description {{ uplink.core_switch|upper }} - {{ uplink.core_port }}
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan {{ item.uplink_vlans }}
+ switchport mode trunk  
+ switchport nonegotiate  
+ spanning-tree portfast disable  
+ spanning-tree bpduguard disable
+ channel-group {{ uplink.channel_group }} active
 {% endfor %}
 !
 !
@@ -147,10 +147,10 @@ ip ssh authentication-retries 5
 logging source-interface vlan{{ item.mgmt_vlan }}
 !
 ip access-list standard VTY_ACL
-  permit {{ mgmt_network }} {{ mgmt_netmask }}
+ permit {{ mgmt_network }} {{ mgmt_netmask }}
 
 ip access-list standard SNMP_ACL
-  permit host {{ snmp.nms }}
+ permit host {{ snmp.nms }}
 !
 snmp-server community {{ snmp.community }} RO SNMP_ACL
 snmp-server trap-source vlan{{ item.mgmt_vlan }}

@@ -1,15 +1,11 @@
 ---
 
 timezone:
-  standard:
-    - MDT
-  offset:
-    - -7
-  dst:
-    - MST
+  standard: MST
+  offset: -7
+  dst: MDT
 
-domain_name:
-  - example.org
+domain_name: example.org
 
 name_servers:
   - 10.10.10.10
@@ -23,19 +19,14 @@ syslog_servers:
   - syslog.example.org
 
 snmp:
-  community:
-    - public
-  nms:
-    - nms.example.org
+  community: public
+  nms: nms.example.org
 
 tacacs:
   servers:
     - 10.100.100.10
     - 10.100.100.20
-  key:
-    - ABC123
+  key: ABC123
 
-mgmt_network:
-  - 10.0.0.0
-mgmt_netmask:
-  - 255.0.0.0
+mgmt_network: 10.0.0.0
+mgmt_netmask: 255.0.0.0
