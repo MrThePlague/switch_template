@@ -1,6 +1,7 @@
 ---
 
 switches:
+  
   - hostname: test-switch-01
     profile: access
     model: WS-2960X-24PS-L
@@ -31,5 +32,34 @@ switches:
     neighbour_hostname: test-core-01
     neighbour_portchannel: Po64
     
+  - hostname: test-switch-02
+    profile: access
+    model: WS-2960X-24PS-L
+    serial_number: 1Z2X3C4V5
+    local_admin: admin
+    secret: ABC12345
+    mgmt_ip: 1.1.1.30
+    mgmt_vlan: 999
+    mgmt_subnet: 1.1.1.0/24
+    default_gateway: 1.1.1.1
+    device_location: Company Site 2 - 111 Example Lane
+    vlans:
+      - number: 120
+        name: DATA_10.0.20.0/24
+      - number: 220
+        name: VOIP_10.0.22.0/24
+    uplinks:
+      - uplink_port: Te1/1/1
+        core_switch: test-core-01
+        core_port: Te1/2/2
+        channel_group: 255
+      - uplink_port: Te2/1/1
+        core_switch: test-core-01
+        core_port: Te2/2/2
+        channel_group: 255
+    uplink_channelgroup: 255
+    uplink_vlans: 10-200,999,2000
+    neighbour_hostname: test-core-01
+    neighbour_portchannel: Po65
 
     
