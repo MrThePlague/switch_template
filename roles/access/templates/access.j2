@@ -1,17 +1,17 @@
 ! Disable packet assembler/disassembler for X.25
 no service pad
 ! Enable keepalives for remote admin to terminate orphaned TCP connections
-service tcp-keepalives-in  
+service tcp-keepalives-in
 service tcp-keepalives-out
 ! Display confiugred time-zone in system logging messages
-service timestamps debug datetime msec localtime show-timezone  
+service timestamps debug datetime msec localtime show-timezone
 service timestamps log datetime msec localtime show-timezone
 ! Enable obfuscation of configured passwords
 service password-encryption
 ! Enable visible sequence numbers for system logging
 service sequence-numbers
 ! Disable echo, chargen, discard, daytime
-no service tcp-small-servers  
+no service tcp-small-servers
 no service udp-small-servers
 ! Enables compression of the startup configuration file
 service compress-config
@@ -32,7 +32,7 @@ vrf definition mgmtVrf
  exit-address-family
 !
 logging buffered 64000
-logging rate-limit 10 except critical  
+logging rate-limit 10 except critical
 logging trap 5
 ! Configure all Syslog servers in the group_vars/all file
 {% for server in syslog_servers %}
@@ -50,11 +50,11 @@ aaa new-model
 aaa authentication login VTY_ACCESS group tacacs+ local
 aaa authentication login CONSOLE group tacacs+ local
 aaa authentication enable default group tacacs+ enable
-aaa authorization exec VTY_ACCESS group tacacs+ local 
+aaa authorization exec VTY_ACCESS group tacacs+ local
 aaa accounting exec VTY_ACCESS start-stop group tacacs+
 aaa accounting commands 15 VTY_ACCESS start-stop group tacacs+
 aaa accounting connection VTY_ACCESS start-stop group tacacs+
-!         
+!
 !
 !
 udld aggressive
@@ -110,25 +110,25 @@ interface {{ uplink.uplink_port }}
  description {{ uplink.core_switch|upper }} - {{ uplink.core_port }}
  switchport trunk native vlan 999
  switchport trunk allowed vlan {{ item.uplink_vlans }}
- switchport mode trunk  
- switchport nonegotiate  
- spanning-tree portfast disable  
+ switchport mode trunk
+ switchport nonegotiate
+ spanning-tree portfast disable
  spanning-tree bpduguard disable
- channel-group {{ uplink.channel_group }} active
+ channel-group {{ uplink.channel_group }} mode active
 {% endfor %}
 !
 !
-interface Port-Channel{{ item.uplink_channelgroup }} 
+interface Port-Channel{{ item.uplink_channelgroup }}
  switchport trunk native vlan 999
  switchport trunk allowed vlan {{ item.uplink_vlans }}
- switchport mode trunk  
- switchport nonegotiate  
- spanning-tree portfast disable  
+ switchport mode trunk
+ switchport nonegotiate
+ spanning-tree portfast disable
  spanning-tree bpduguard disable
 !
 ip tcp synwait-time 10
 ip tftp source-interface vlan{{ item.mgmt_vlan }}
-! 
+!
 !
 ip default-gateway {{ item.default_gateway }}
 no ip http server
@@ -140,7 +140,7 @@ crytpo key generate rsa general-keys label {{ item.hostname|upper }}.{{ domain_n
 ip ssh rsa keypair-name {{ item.hostname|upper }}.{{ domain_name }}
 ip ssh source-interface vlan{{ item.mgmt_vlan }}
 ip ssh version 2
-ip ssh time-out 60  
+ip ssh time-out 60
 ip ssh authentication-retries 5
 !
 logging source-interface vlan{{ item.mgmt_vlan }}
@@ -176,7 +176,7 @@ banner motd ^
 !
 ***************************************************************
 
-$(hostname)       
+$(hostname)
 
 ***************************************************************
 
@@ -195,28 +195,28 @@ Connected to VTY: $(line)
 !
 banner login ^
 
------------------------------------------------------------------------  
-WARNING:  
-THE PROGRAMS AND DATA STORED ON THIS SYSTEM ARE LICENSED TO OR ARE THE  
-PROPERTY OF A PRIVATE CORPORATION AND ARE LAWFULLY AVAILABLE ONLY TO  
+-----------------------------------------------------------------------
+WARNING:
+THE PROGRAMS AND DATA STORED ON THIS SYSTEM ARE LICENSED TO OR ARE THE
+PROPERTY OF A PRIVATE CORPORATION AND ARE LAWFULLY AVAILABLE ONLY TO
 AUTHORIZED USERS FOR APPROVED PURPOSES.
 
-UNAUTHORIZED ACCESS TO ANY PROGRAM OR DATA ON SYSTEM IS NOT PERMITTED.  
-THIS SYSTEM MAY BE MONITORED AT ANY TIME FOR OPERATIONAL REASONS.  
-THEREFORE, IF YOU ARE NOT AN AUTHORIZED USER, DO NOT ATTEMPT TO LOGIN.  
+UNAUTHORIZED ACCESS TO ANY PROGRAM OR DATA ON SYSTEM IS NOT PERMITTED.
+THIS SYSTEM MAY BE MONITORED AT ANY TIME FOR OPERATIONAL REASONS.
+THEREFORE, IF YOU ARE NOT AN AUTHORIZED USER, DO NOT ATTEMPT TO LOGIN.
 -----------------------------------------------------------------------
 
-^  
+^
 !
 line con 0
- session-timeout 5 
+ session-timeout 5
  exec-timeout 5 0
  login authentication CONSOLE
  stopbits 1
  exec prompt timestamp
  logging synchronous
 line vty 0 4
- session-timeout 60 
+ session-timeout 60
  access-class VTY_ACL in
  exec-timeout 30 0
  login authentication VTY_ACCESS
@@ -225,7 +225,7 @@ line vty 0 4
  exec prompt timestamp
  logging synchronous
 line vty 5 15
- session-timeout 60 
+ session-timeout 60
  access-class VTY_ACL in
  exec-timeout 30 0
  login authentication VTY_ACCESS
