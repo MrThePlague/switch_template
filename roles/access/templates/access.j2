@@ -1,0 +1,246 @@
+! Disable packet assembler/disassembler for X.25
+no service pad
+! Enable keepalives for remote admin to terminate orphaned TCP connections
+service tcp-keepalives-in  
+service tcp-keepalives-out
+! Display confiugred time-zone in system logging messages
+service timestamps debug datetime msec localtime show-timezone  
+service timestamps log datetime msec localtime show-timezone
+! Enable obfuscation of configured passwords
+service password-encryption
+! Enable visible sequence numbers for system logging
+service sequence-numbers
+! Disable echo, chargen, discard, daytime
+no service tcp-small-servers  
+no service udp-small-servers
+! Enables compression of the startup configuration file
+service compress-config
+!
+!
+! Import Hostname and set to upper-case
+hostname {{ item.hostname|upper }}
+!
+!
+security authentication failure rate 3 log
+!
+vrf definition mgmtVrf
+ !
+ address-family ipv4
+ exit-address-family
+ !
+ address-family ipv6
+ exit-address-family
+!
+logging buffered 64000
+logging rate-limit 10 except critical  
+logging trap 5
+! Configure all Syslog servers in the group_vars/all file
+{% for server in syslog_servers %}
+logging host {{ server }}
+{% endfor %}
+!
+no logging console
+enable secret 0 {{ item.secret }}
+!
+username {{ item.local_admin }} privilege 15 secret 0 {{ item.secret }}
+!
+aaa new-model
+!
+!
+aaa authentication login VTY_ACCESS group tacacs+ local
+aaa authentication login CONSOLE group tacacs+ local
+aaa authentication enable default group tacacs+ enable
+aaa authorization exec VTY_ACCESS group tacacs+ local 
+aaa accounting exec VTY_ACCESS start-stop group tacacs+
+aaa accounting commands 15 VTY_ACCESS start-stop group tacacs+
+aaa accounting connection VTY_ACCESS start-stop group tacacs+
+!         
+!
+!
+udld aggressive
+!
+!
+aaa session-id common
+clock timezone {{ timezone.standard|upper }} {{ timezone.offset }}
+clock summer-time {{ timezone.dst|upper   }} recurring
+!
+!
+!
+!
+no ip source-route
+!
+ip domain-name {{ domain_name }}
+! Configure all DNS servers in the group_vars/all file
+{% for server in name_servers %}
+ip name-server {{ server }}
+{% endfor %}
+!
+ip domain-lookup
+no ip bootp server
+!
+!
+login block-for 60 attempts 10 within 5
+vtp domain {{ item.hostname|upper }}
+vtp mode transparent
+vtp password {{ item.hostname|upper }}
+!
+!
+errdisable recovery cause udld
+power redundancy-mode redundant
+!
+spanning-tree mode rapid-pvst
+spanning-tree portfast default
+spanning-tree portfast bpduguard default
+spanning-tree extend system-id
+spanning-tree vlan 1-4094 priority 20480
+!
+redundancy
+ mode sso
+!
+vlan internal allocation policy ascending
+!
+interface vlan {{ item.mgmt_vlan }}
+  description Management - {{ item.mgmt_subnet }}
+  ip address {{ item.mgmt_ip }} 255.255.255.0
+  no ip source-route
+  no ip proxy-arp
+!
+{% for uplink in item.uplinks %}
+interface {{ uplink.uplink_port }}
+  description {{ uplink.core_switch|upper }} - {{ uplink.core_port }}
+  switchport trunk native vlan 999
+  switchport trunk allowed vlan {{ item.uplink_vlans }}
+  switchport mode trunk  
+  switchport nonegotiate  
+  spanning-tree portfast disable  
+  spanning-tree bpduguard disable
+  channel-group {{ uplink.channel_group }} active
+{% endfor %}
+!
+!
+interface Port-Channel{{ item.uplink_channelgroup }} 
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan {{ item.uplink_vlans }}
+ switchport mode trunk  
+ switchport nonegotiate  
+ spanning-tree portfast disable  
+ spanning-tree bpduguard disable
+!
+ip tcp synwait-time 10
+ip tftp source-interface vlan{{ item.mgmt_vlan }}
+! 
+!
+ip default-gateway {{ item.default_gateway }}
+no ip http server
+no ip http secure-server
+!
+ip tacacs source-interface vlan{{ item.mgmt_vlan }}
+!
+crytpo key generate rsa general-keys label {{ item.hostname|upper }}.{{ domain_name }} modulus 2048
+ip ssh rsa keypair-name {{ item.hostname|upper }}.{{ domain_name }}
+ip ssh source-interface vlan{{ item.mgmt_vlan }}
+ip ssh version 2
+ip ssh time-out 60  
+ip ssh authentication-retries 5
+
+!
+logging source-interface vlan{{ item.mgmt_vlan }}
+!
+ip access-list standard VTY_ACL
+  permit {{ mgmt_network }} {{ mgmt_netmask }}
+
+ip access-list standard SNMP_ACL
+  permit host {{ snmp.nms }}
+!
+snmp-server community {{ snmp.community }} RO SNMP_ACL
+snmp-server trap-source vlan{{ item.mgmt_vlan }}
+snmp-server location {{ item.device_location }}
+snmp-server enable traps snmp authentication linkdown linkup coldstart warmstart
+snmp-server enable traps tty
+snmp-server enable traps entity
+snmp-server enable traps envmon fan shutdown supply temperature status
+snmp-server enable traps config
+snmp-server host {{ snmp.nms }} {{ snmp.community }}
+snmp-server file-transfer access-group 10 protocol tftp
+!
+
+! Configure all NTP servers in the group_vars/all file
+{% for server in tacacs.servers %}
+tacacs-server host {{ server }}
+{% endfor %}
+tacacs-server directed-request
+tacacs-server key 0 {{ tacacs.key }}
+radius-server retransmit 5
+!
+!
+!
+banner motd ^
+!
+***************************************************************
+
+$(hostname)       
+
+***************************************************************
+
+Model:   {{ item.model }}
+Serial#: {{ item.serial_number }}
+Port-Channel{{ item.uplink_channelgroup }}: To {{ item.neighbour_hostname|upper }} - {{ item.neighbour_portchannel }}
+
+Company Service Desk: +1-800-555-5555
+
+Management IP: {{ item.mgmt_ip }}
+
+Connected to VTY: $(line)
+
+***************************************************************
+^
+!
+banner login ^
+
+-----------------------------------------------------------------------  
+WARNING:  
+THE PROGRAMS AND DATA STORED ON THIS SYSTEM ARE LICENSED TO OR ARE THE  
+PROPERTY OF A PRIVATE CORPORATION AND ARE LAWFULLY AVAILABLE ONLY TO  
+AUTHORIZED USERS FOR APPROVED PURPOSES.
+
+UNAUTHORIZED ACCESS TO ANY PROGRAM OR DATA ON SYSTEM IS NOT PERMITTED.  
+THIS SYSTEM MAY BE MONITORED AT ANY TIME FOR OPERATIONAL REASONS.  
+THEREFORE, IF YOU ARE NOT AN AUTHORIZED USER, DO NOT ATTEMPT TO LOGIN.  
+-----------------------------------------------------------------------
+
+^  
+!
+line con 0
+ session-timeout 5 
+ exec-timeout 5 0
+ login authentication CONSOLE
+ stopbits 1
+ exec prompt timestamp
+ logging synchronous
+line vty 0 4
+ session-timeout 60 
+ access-class VTY_ACL in
+ exec-timeout 30 0
+ login authentication VTY_ACCESS
+ transport input ssh
+ transport output telnet ssh
+ exec prompt timestamp
+ logging synchronous
+line vty 5 15
+ session-timeout 60 
+ access-class VTY_ACL in
+ exec-timeout 30 0
+ login authentication VTY_ACCESS
+ transport input ssh
+ transport output telnet ssh
+ exec prompt timestamp
+ logging synchronous
+!
+! Source NTP synchronisation from the Management SVI
+ntp source vlan{{ item.mgmt_vlan }}
+! Configure all NTP servers in the group_vars/all file
+{% for server in ntp_servers %}
+ntp server {{ server }}
+{% endfor %}
+!
+end
