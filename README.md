@@ -15,3 +15,4 @@ Quick and dirty Ansible playbook to create switch configurations for Cisco IOS/I
 * Create roles roles for specific switch models
 * Document the jinja2 template file
 * Nest variables better
+* Create loop for user access ports
